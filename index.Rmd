@@ -1,71 +1,154 @@
 ---
-title: "A3: Incarceration"
+title: "A4-incarceration"
 output: html_document
+date: "2024-05-27"
 ---
+
+```{r, echo=FALSE, setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(repos = c(CRAN = "https://cloud.r-project.org"))  
+
+```
 
 ### Introduction
 
-An introduction of the problem domain and a description of the variable(s) you are choosing to analyze (and why!)
+In the United States incarceration is a big issue, it is particularly high in the United States due to a combination of historical, legal, social, and economic factors.There so many ongoing issues that happen with incarceration such as racial inequlities, gender inequalities, and much more. In this project i plan to compare trends with male and female jail populations as well as to compare the populations with male jail population overall and to see what majority male juveniles make up in the male population. Creating this data analysis will help to understand the numbers and trends of specific categories. But most importantly, this project can help to understand policy decisions to foster public awareness. 
 
 ### Summary Information
 
-Write a summary paragraph of findings that includes the 5 values calculated from your summary information R script
-
-These will likely be calculated using your DPLYR skills, answering questions such as: 
-
-- What is the average value of my variable across all the counties (in the current year)?
-- Where is my variable the highest / lowest?
-- How much has my variable change over the last N years?
-
-Feel free to calculate and report values that you find relevant. Again, remember that the purpose is to think about how these measure of incarceration vary by race.
+I used the "us-jail-pop.csv" dataset. It provides detailed information on jail populations across various counties in the United States, spanning multiple years. Key columns include geographic identifiers like state, and county names, demographic data such as total population and population aged 15-64, and specific jail population counts segmented by gender and race. The dataset includes information on total jail population, female and male jail populations, and further breakdowns into adult and juvenile populations. Additionally, racial categories such as AAPI, Black, Latinx, Native, White, and other races are detailed for jail populations. The urbanicity of counties is also recorded, providing a distinction between small/mid and large urban areas. While most columns have complete data, certain columns, especially those related to racial jail populations, have missing values. This dataset is valuable for analyzing trends and disparities in jail populations across different demographics and geographic locations over time.
 
 ### The Dataset
 
-Who collected the data?  
-How was the data collected or generated?  
-Why was the data collected?  
-How many observations (rows) are in your data?  
-How many features (columns) are in the data?  
-What, if any, ethical questions or questions of power do you need to consider when working with this data?  
-What are possible limitations or problems with this data?   (at least 200 words)
+The Vera Institute of Justice is a nonprofit organization founded in 1961 to address injustices in the bail system in New York City. Its mission is to end the overcriminalization and mass incarceration of people of color, immigrants, and those experiencing poverty. Vera Institute focuses on creating evidence-based solutions to transform the criminal justice and immigration systems, ensuring they are fair and just for all.Vera's work includes initiatives to reduce incarceration rates, promote dignity for those in detention, and advance legal representation for immigrants. They collaborate with community members, government leaders, and other stakeholders to develop and test innovative programs aimed at disrupting the current systems of incarceration. Successful pilot programs are then scaled nationwide to maximize their impact. Some implications include systemic inequalities because they highlight racial adn ethnic disparities.Another implication is the mass incarceration as their data reveals the extent of mass incarceration in the United States.By being aware of these implications the community can work towards a more just and effective criminal justice system.
 
 
 ### Trends Over Time Chart
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+```{r, echo=FALSE, message=FALSE}
+# Load libraries
+library(dplyr)
+library(ggplot2)
 
-The first chart that you will create and include will show the trend over time of your variable/topic. Think carefully about what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
+# Load the datasets
+data_path <- "us-jail-pop.csv"
+us_jail_pop <- read.csv(data_path)
 
-- Show more than one, but fewer than ~10 trends
-  - This may mean showing the same measure for different locations or different racial groups. Think carefully about a meaningful comparison of locations (e.g., the top 10 counties in a state, top 10 states, etc.)
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- You need a legend for your different line colors and a clear legend title
+# Aggregate data for trend over time
+jail_pop_over_time <- us_jail_pop %>%
+  group_by(year) %>%
+  summarize(female_jail_pop = sum(female_jail_pop, na.rm = TRUE),
+            male_jail_pop = sum(male_jail_pop, na.rm = TRUE))
 
-When we say "clear" or "human readable" titles and labels, that means that you should not just display the variable name.
+# Plot the trend over time with the updated y-axis label
+ggplot(jail_pop_over_time, aes(x = year)) +
+  geom_line(aes(y = female_jail_pop, color = "Female Jail Population")) +
+  geom_line(aes(y = male_jail_pop, color = "Male Jail Population")) +
+  geom_point(aes(y = female_jail_pop, color = "Female Jail Population")) +
+  geom_point(aes(y = male_jail_pop, color = "Male Jail Population")) +
+  ggtitle("Female and Male Jail Population Growth") +
+  xlab("Years Overtime") +
+  ylab("Prison Population") +  # Updated y-axis label
+  scale_color_manual(values = c("Female Jail Population" = "pink", "Male Jail Population" = "blue")) +
+  theme_minimal() +
+  labs(color = "Gender Population")
 
-Here's an example of how to run an R script inside an RMarkdown file:
-
-``````{r, echo = FALSE, code = readLines("chart1_example.R")}
 ```
+
+This chart shows the trends of the male jail population and female jail population. We can see that males are much more likey to be arrested than females over the years. This could be that women are generally arrested less frequently than men due to a combination of sociological, behavioral, and systemic factors. 
 
 ### Variable Comparison Chart
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+```{r, echo=FALSE}
+# Aggregate data for comparison
+juvenile_male_jail_pop_over_time <- us_jail_pop %>%
+  group_by(year) %>%
+  summarize(male_juvenile_jail_pop = sum(male_juvenile_jail_pop, na.rm = TRUE),
+            male_jail_pop = sum(male_jail_pop, na.rm = TRUE))
 
-The second chart that you will create and include will show how two different (continuous) variables are related to one another. Again, think carefully about what such a comparison means and what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
+# Plot the comparison chart
+ggplot(juvenile_male_jail_pop_over_time, aes(x = year)) +
+  geom_line(aes(y = male_juvenile_jail_pop, color = "male juvenile Jail Population")) +
+  geom_line(aes(y = male_jail_pop, color = "male Jail Population")) +
+  geom_point(aes(y = male_juvenile_jail_pop, color = "male juvenile Jail Population")) +
+  geom_point(aes(y = male_jail_pop, color = "male Jail Population")) +
+  ggtitle("Comparison of male juvenile and overall male jail population Over Time") +
+  xlab("Years overtime") +
+  ylab("Prison Population") +
+  scale_color_manual(values = c("male juvenile Jail Population" = "red", "male Jail Population" = "blue")) +
+  theme_minimal() +
+  labs(color = "comparison between male population and male juvenile")
 
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- If you choose to add a color encoding (not required), you need a legend for your different color and a clear legend title
+```
+
+This chart compares the trends of the overall male jail population and to compare with the overall male juvenile population. I did this to see a glimpse of how much majority do male juveniles make up for the male jail population. I realized that not many juveniles make up that population. It is just a very little percentage.
+
 
 ### Map
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+```{r, include=FALSE}
+# Set CRAN mirror
+options(repos = c(CRAN = "https://cloud.r-project.org"))
 
-The last chart that you will create and include will show how a variable is distributed geographically. Again, think carefully about what such a comparison means and what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
+# Install Necessary Packages
+if (!require("maps")) install.packages("maps")
+if (!require("dplyr")) install.packages("dplyr")
 
-- Your map needs a title
-- Your color scale needs a legend with a clear label
-- Use a map based coordinate system to set the aspect ratio of your map
+# Load the Required Libraries
+library(maps)
+library(dplyr)
+
+# Load the dataset
+data_path <- "us-jail-pop.csv"
+jail_data <- read.csv(data_path, stringsAsFactors = FALSE)
+
+# Inspect the dataset
+head(jail_data)
+names(jail_data)
+summary(jail_data)
+
+# Aggregate data to calculate total jail population for each county from 1970 to 2018
+jail_data_aggregated <- jail_data %>%
+  filter(year >= 1970 & year <= 2018) %>%
+  group_by(fips) %>%
+  summarize(total_jail_pop = sum(total_jail_pop, na.rm = TRUE))
+
+# Load county.fips
+data("county.fips")
+
+# Order of mapping in FIPS
+fipsOrder <- county.fips$fips[match(map("county", plot = FALSE)$names, county.fips$polyname)]
+
+# Rearrange the counties in the right sequence
+jail_data_aggregated <- jail_data_aggregated[match(fipsOrder, jail_data_aggregated$fips),]
+
+# Attach the data
+attach(jail_data_aggregated)
+
+# Handle NA values and create logs
+total_jail_pop[is.na(total_jail_pop)] <- 0
+log_jail_pop <- log(replace(total_jail_pop, which(total_jail_pop == 0), 1))
+
+# Define colors
+color1 <- hsv(0, log_jail_pop / max(log_jail_pop), 1)
+
+# Adjust plotting parameters
+par(mar = c(1, 1, 1, 1))  # Margins
+```
+```{r, echo=FALSE}
+# Plot the map
+map("county", col = color1, fill = TRUE, resolution = 0, lty = 0, bg = "lightblue2")
+map("state", fill = FALSE, add = TRUE, lty = 1, lwd = 0.4)
+title("United States Jail County Population", cex = 0.5)
+legend("bottomright", 
+       c("0~5000", "5000~10000", "10000~15000", "15000~20000", "20000~24000"), 
+       fill = hsv(0, 0:4/4, 1), 
+       cex = 0.40) 
+
+detach(jail_data_aggregated)
+```
+
+This map shows the jail population in each County's from the United States map. I did this because when we usually talk about jails or see cop cars they go by county or cities. Especially on the news they mention for example "King County Jails", so i found that The U.S. has a large and geographically dispersed population, making it impractical for a single, centralized system to manage all incarceration needs. County jails allow for more manageable and accessible detention facilities. Seeing the values with how many are incarcerated in each county are interesting to see the comparisions.
+
+
 
